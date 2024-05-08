@@ -1,1 +1,28 @@
-venv/**
+# Compiled python modules.
+__pycache__/
+*.py[cod]
+
+# Setuptools distribution folder.
+/dist/
+
+# Python egg metadata, temporary files.
+*.egg-info/
+*.egg
+/build/
+/temp/
+
+# Compiled Object files and Cython-generated C++ files.
+*.o
+*.cpp
+
+# Logs.
+/log/
+
+# Dynamic libraries.
+*.so
+
+# Hidden system files.
+.DS_Store
+
+# Ignore specific auto-generated Python scripts.
+/pyfof/*.cpp

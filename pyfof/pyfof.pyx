@@ -37,7 +37,7 @@ def friends_of_friends(data, double linking_length, bint use_brute = False):
     cdef np.ndarray[double, ndim=2, mode='c'] data_array = np.asarray(
         data,
         order='C',
-        dtype=np.float,
+        dtype=np.float64,
     )
 
     if np.any( np.isnan(data) ):

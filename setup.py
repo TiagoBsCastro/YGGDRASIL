@@ -36,9 +36,7 @@ def find_boost(hint=None, verbose=True):
     search_dirs += [
         "/usr/include",
         "/usr/local/include",
-        "/usr/local/homebrew/include",
         "/opt/local/include",
-        "/data/sljg2/software/boost/include",
     ]
 
     for d in search_dirs:
@@ -81,9 +79,9 @@ with io.open(os.path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 extensions = [
     Extension(
-        "pyfof",
+        "ygg",
         sources=["pyfof/pyfof" + ext, "pyfof/fof.cc", "pyfof/fof_brute.cc"],
-        extra_compile_args=["-std=c++11", "-Wno-return-type"],
+        extra_compile_args=["-std=c++17", "-Wno-return-type"],
         language="c++",
     )
 ]
@@ -92,12 +90,12 @@ if USE_CYTHON:
     extensions = cythonize(extensions)
 
 setup(
-    name="pyfof",
-    version="0.2-dev",
-    description="Friends-of-friends cluster finding in python",
-    author="Simon Gibbons",
-    author_email="simongibbons@gmail.com",
-    url="https://github.com/simongibbons/pyfof",
+    name="YGGDRASIL",
+    version="0.1-dev",
+    description="YGGDRASIL: Yielder of Galactic Groups and Dynamic Rungs Architectural Structuring In Layers - CONCEPT Halo Finder",
+    author="Tiago Castro",
+    author_email="tiagobscastro@gmail.com",
+    url="https://github.com/TiagoBsCastro/YGGDRASIL",
     license="MIT",
     keywords=["clustering", "friends-of-friends"],
     install_requires=["numpy"],
