@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
 
+
 import ygg
+
 
 @pytest.mark.parametrize("dimensions", range(1, 10))
 @pytest.mark.parametrize("dtype", [int, float])
@@ -18,6 +20,7 @@ def test_two_points_seperated_on_x_axis(dimensions, dtype):
     assert ygg.friends_of_friends(points, 1.001) == [[0, 1]]
     assert ygg.friends_of_friends(points, 2.0) == [[0, 1]]
 
+
 def test_pass_in_points_as_a_list():
     points = [
         [0, 0],
@@ -29,6 +32,7 @@ def test_pass_in_points_as_a_list():
 def test_use_brute_force_implementation():
     points = [[0, 1], [0, 0]]
     assert sorted(ygg.friends_of_friends(points, 0.5, use_brute=True)) == [[0], [1]]
+
 
 def test_no_points():
     assert ygg.friends_of_friends(np.empty((0, 2)), 1.0) == []

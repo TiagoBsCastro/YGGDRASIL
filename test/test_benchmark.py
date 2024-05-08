@@ -1,7 +1,9 @@
 import pytest
 import numpy as np
 
+
 import ygg
+
 
 @pytest.mark.parametrize("use_brute", [False, True])
 def test_two_gaussian_blobs(benchmark, use_brute):

@@ -16,6 +16,8 @@ namespace bg = boost::geometry;
 namespace bmpl = boost::mpl;
 namespace bgi = bg::index;
 
+typedef std::size_t size_t;
+
 // Create a D dimensional point from an array of coordinates
 template <size_t D>
 struct point_setter {

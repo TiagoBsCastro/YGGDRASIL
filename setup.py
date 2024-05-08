@@ -92,7 +92,7 @@ if USE_CYTHON:
 setup(
     name="YGGDRASIL",
     version="0.1-dev",
-    description="YGGDRASIL: Yielder of Galactic Groups and Dynamic Rungs Architectural Structuring In Layers - CONCEPT Halo Finder",
+    description="YGGDRASIL: Yielder of Galactic Groups and Dynamic Rungs Architectural Structuring In Layers",
     author="Tiago Castro",
     author_email="tiagobscastro@gmail.com",
     url="https://github.com/TiagoBsCastro/YGGDRASIL",
