@@ -1,14 +1,17 @@
-pyfof
+YGGDRASIL
 =====
 
-Friends of Friends cluster finding in python.
+<div align="justify">
 
-This implements the friends-of-friends algorithm to find clusters of points,
-accelerated with an R*-tree.
+YGGDRASIL: Yielder of Galactic Groups and Dynamic Rungs, Architectural Structuring In Layers - The [CO*N*CEPT](https://github.com/jmd-dk/concept/) halo finder.
+
+    Yggdrasil is the immense tree that connects the nine worlds in Norse cosmology. This symbol of connection and structure perfectly matches the concept of building a hierarchy of cosmic structures.
+
+The algorithm of YGGDRASIL starts with a friends-of-friends clustering. YGGDRASIL has been developed on top of the friends-of-friends cluster finding in python [pyfof](https://github.com/simongibbons/pyfof) that implements the friends-of-friends algorithm to find clusters of points, accelerated with an R*-tree.
 
 ## Requirements
- * c++11 complient compiler
- * [Cython](http://cython.org/) (for the development version only)
+ * c++17 complient compiler
+ * [Cython](http://cython.org/)
  * [numpy](http://www.numpy.org/)
  * [boost](http://www.boost.org/)
 
@@ -17,20 +20,9 @@ accelerated with an R*-tree.
 If your boost installation is in a normal place you should just be able to install
 the latest release of the package directly from PyPI
 
-```pip install pyfof```
+```pip install --use-pep517 .```
 
-If that fails then you will need to tell pip where to find your boost include
-directory. This can be done by creating a file in your home directory called
-```.pydistutils.cfg``` containing:
-
-```
-[build_ext]
-include_dirs=/path/to/boost/include/directory
-```
-
-and then running the above command.
-
-## Examples
+## Example
 
 ### Two Gaussian blobs
 
@@ -38,13 +30,13 @@ and then running the above command.
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-import pyfof
+import ygg
 
 npts = 10000
-data = np.vstack((np.random.normal(-1,0.2,(npts/2,2)),\
-                  np.random.normal(1,0.2,(npts/2,2))))
+data = np.vstack((np.random.normal(-1,0.2,(npts//2,2)),\
+                  np.random.normal(1,0.2,(npts//2,2))))
 
-groups = pyfof.friends_of_friends(data, 0.4)
+groups = ygg.friends_of_friends(data, 0.4)
 
 colors = cm.rainbow(np.linspace(0, 1, len(groups)))
 for g,c in zip(groups, colors):
@@ -53,8 +45,4 @@ for g,c in zip(groups, colors):
 plt.show()
 ```
 
-![gaussian_example](/../screenshots/img/gaussian_example.png)
-
-### A more complicated example
-
-![stream_example](/../screenshots/img/stream_example.png)
+</div>
