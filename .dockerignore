@@ -1,6 +1,0 @@
-venv/*
-*.so
-
-dist/*
-
-.git/*
