@@ -5,7 +5,8 @@ YGGDRASIL
 
 YGGDRASIL: Yielder of Galactic Groups and Dynamic Rungs, Architectural Structuring In Layers - The [CO*N*CEPT](https://github.com/jmd-dk/concept/) halo finder.
 
-    Yggdrasil is the immense tree that connects the nine worlds in Norse cosmology. This symbol of connection and structure perfectly matches the concept of building a hierarchy of cosmic structures.
+    Yggdrasil is the immense tree that connects the nine worlds in Norse cosmology. 
+    This symbol of connection and structure perfectly matches the concept of building a hierarchy of cosmic structures.
 
 The algorithm of YGGDRASIL starts with a friends-of-friends clustering. YGGDRASIL has been developed on top of the friends-of-friends cluster finding in python [pyfof](https://github.com/simongibbons/pyfof) that implements the friends-of-friends algorithm to find clusters of points, accelerated with an R*-tree.
 
