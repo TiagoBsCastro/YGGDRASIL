@@ -6,6 +6,8 @@
 
 namespace {
 
+typedef std::size_t size_t;
+
 typedef std::pair<size_t, double*> Point;
 
 double dist(double *p1, double *p2, size_t ndim) {
