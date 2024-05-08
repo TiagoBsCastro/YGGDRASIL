@@ -3,7 +3,7 @@ YGGDRASIL
 
 <div align="justify">
 
-YGGDRASIL: Yielder of Galactic Groups and Dynamic Rungs, Architectural Structuring In Layers - The [CO*N*CEPT](https://github.com/jmd-dk/concept/) halo finder.
+YGGDRASIL: Yielder of Galactic Groups and Dynamic Rungs, Architectural Structuring In Layers — The [CO*N*CEPT](https://github.com/jmd-dk/concept/) halo finder.
 
     Yggdrasil is the immense tree that connects the nine worlds in Norse cosmology. 
     This symbol of connection and structure perfectly matches the concept of build-
