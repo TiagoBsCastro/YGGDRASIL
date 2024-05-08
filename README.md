@@ -4,6 +4,9 @@ YGGDRASIL
 <div align="justify">
 
 <img src="./ygg.png" width="220" alt="Logo">
+[![C++ Build CI](https://github.com/TiagoBsCastro/YGGDRASIL/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/TiagoBsCastro/YGGDRASIL/actions/workflows/unit-tests.yml)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+[![Last Updated](https://img.shields.io/badge/updated-May%2024-orange.svg)](https://tiagobscastro.github.io/SLICER/)
 
 YGGDRASIL: Yielder of Galactic Groups and Dynamic Rungs, Architectural Structuring In Layers — The [CO*N*CEPT](https://github.com/jmd-dk/concept/) halo finder.
 
