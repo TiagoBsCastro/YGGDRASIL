@@ -229,7 +229,7 @@ std::vector<std::vector<size_t>> friends_of_friends_rtree(double *data, size_t n
     while (!tree.empty()) {
         std::vector<value_t> to_add;
         // Start with an arbitrary point from the R-tree
-        to_add.push_back(*tree.qbegin(boost::geometry::index::satisfies([](value_t const &) { return true; })));
+        to_add.push_back(*tree.qbegin(bg::index::satisfies([](value_t const &) { return true; })));
         tree.remove(to_add.begin(), to_add.end()); // Remove it from the tree to prevent re-processing
 
         // Process all points that need to be grouped
