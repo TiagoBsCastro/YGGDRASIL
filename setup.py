@@ -1,6 +1,7 @@
 import io
 import os
 import re
+import numpy as np
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext as _build_ext
@@ -77,13 +78,27 @@ with io.open(os.path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 
+# Define macros and libraries based on whether Boost is needed
+DEFINE_MACROS = []
+INCLUDE_DIRS = [np.get_include(), "/home/tcastro/include"]
+LIBRARY_DIRS = ["/home/tcastro/lib"]
+LIBRARIES = [
+    "boost_log_setup", "boost_log", "boost_thread", "boost_date_time",
+    "boost_system", "boost_filesystem", "pthread"
+]
+EXTRA_COMPILE_ARGS = ["-std=c++17", "-Wno-return-type"]
+EXTRA_LINK_ARGS = ["-Wl,-rpath,/home/tcastro/lib"]
+
 extensions = [
-    Extension(
-        "ygg",
-        sources=["pyfof/pyfof" + ext, "pyfof/fof.cc", "pyfof/fof_brute.cc"],
-        extra_compile_args=["-std=c++17", "-Wno-return-type"],
-        language="c++",
-    )
+    Extension("ygg",
+              sources=["pyfof/pyfof.pyx", "pyfof/fof.cc", "pyfof/fof_brute.cc"],
+              define_macros=DEFINE_MACROS,
+              include_dirs=INCLUDE_DIRS,
+              library_dirs=LIBRARY_DIRS,
+              libraries=LIBRARIES,
+              extra_compile_args=EXTRA_COMPILE_ARGS,
+              extra_link_args=EXTRA_LINK_ARGS,
+              language="c++")
 ]
 
 if USE_CYTHON:
