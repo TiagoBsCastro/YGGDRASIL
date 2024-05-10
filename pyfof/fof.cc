@@ -185,7 +185,7 @@ std::vector<std::vector<size_t>> friends_of_friends_rtree(double *data, size_t n
     
     typedef bg::model::point<double, D, bg::cs::cartesian> point_t;
     typedef std::pair<point_t, size_t> value_t;
-    using tree_t = bgi::rtree<value_t, bgi::linear<16>>;
+    using tree_t = bgi::rtree<value_t, bgi::linear<4096,16>>;
     typedef bmpl::range_c<size_t, 0, D> dim_range;
 
     init_logging();
@@ -218,7 +218,7 @@ std::vector<std::vector<size_t>> friends_of_friends_rtree(double *data, size_t n
     // Create an R-tree using the points vector
     tree_t tree(points.begin(), points.end());
     t2 = high_resolution_clock::now();
-    BOOST_LOG_TRIVIAL(info) << "Created R-tree in " << duration_cast<milliseconds>(t2 - t1).count() << " ms";
+    BOOST_LOG_TRIVIAL(info) << "Created R-tree in " << duration_cast<seconds>(t2 - t1).count() << " s";
 
     // This will store the groups of points that are within the linking length
     std::vector<std::vector<size_t>> groups;
@@ -275,7 +275,7 @@ std::vector<std::vector<size_t>> friends_of_friends_rtree(double *data, size_t n
     }
 
     t2 = high_resolution_clock::now();
-    BOOST_LOG_TRIVIAL(info) << "Groups built in " << duration_cast<milliseconds>(t2 - t1).count() << " ms";
+    BOOST_LOG_TRIVIAL(info) << "Groups built in " << duration_cast<seconds>(t2 - t1).count() << " s";
     BOOST_LOG_TRIVIAL(info) << "Completed friends-of-friends grouping";
     // Finalize logging before exiting the program
     finalize_logging();
