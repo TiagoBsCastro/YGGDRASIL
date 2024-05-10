@@ -27,3 +27,6 @@ __pycache__/
 
 # Ignore specific auto-generated Python scripts.
 /pyfof/*.cpp
+
+# Ignore vscode files
+.vscode/settings.json
