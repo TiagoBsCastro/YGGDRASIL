@@ -1,0 +1,14 @@
+[2024-05-10 18:36:22.209707] [info] Starting to reserve space for points
+[2024-05-10 18:36:22.209884] [info] Reserved space for 16777216particles in 0 ms
+[2024-05-10 18:36:22.209894] [info] Starting to populate R-tree with points
+Fast Fowarding next block. Name: INFO
+Fast Fowarding next block. Name: ID  
+reading next block. Name: POS 
+Should be                 POS 
+[2024-05-10 18:36:23.124238] [info] Populated R-tree in 914 ms
+[2024-05-10 18:36:23.124270] [info] Creating an R-tree
+[2024-05-10 18:36:23.124274] [info] Created R-tree in 0 s
+[2024-05-10 18:36:23.124277] [info] Building groups
+[2024-05-10 18:36:23.124280] [info] Groups built in 0 s
+[2024-05-10 18:36:23.124282] [info] Completed friends-of-friends grouping
+Clusters formed:
