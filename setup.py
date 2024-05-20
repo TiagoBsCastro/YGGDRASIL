@@ -86,7 +86,7 @@ LIBRARIES = [
     "boost_log_setup", "boost_log", "boost_thread", "boost_date_time",
     "boost_system", "boost_filesystem", "pthread"
 ]
-EXTRA_COMPILE_ARGS = ["-std=c++17", "-Wno-return-type"]
+EXTRA_COMPILE_ARGS = ["-std=c++17", "-Wno-return-type", "-O3"]
 EXTRA_LINK_ARGS = ["-Wl,-rpath,/home/tcastro/lib"]
 
 extensions = [

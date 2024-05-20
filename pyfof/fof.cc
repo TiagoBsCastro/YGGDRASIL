@@ -3,6 +3,7 @@
 #include <vector>
 #include <list>
 #include <cmath>
+#include <unordered_set>
 
 #include <boost/geometry/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
@@ -92,6 +93,22 @@ struct point_setter {
     }
 };
 
+template <size_t D>
+struct point_setter_const {
+    /// Type definition for a D-dimensional point using double precision.
+    typedef bg::model::point<double, D, bg::cs::cartesian> point_t;
+
+    point_t& point; ///< Reference to the point object whose coordinates are to be set.
+    double value;    /// const value to be set.
+
+    point_setter_const(point_t& point, double value) : point(point), value(value) {}
+
+    template<typename U>
+    void operator()(U i) {
+        bg::set<i>(point, value);  // Set the i-th dimension of the point to loc[i]
+    }
+};
+
 /**
  * @brief Struct to calculate the squared Euclidean distance between two D-dimensional points.
  *
@@ -109,6 +126,7 @@ struct d2_calc {
     const point_t &p1; ///< Reference to the first point.
     const point_t &p2; ///< Reference to the second point.
     double &d2;         ///< Reference to the double variable where the result (squared distance) will be stored.
+    double L;         ///< Double variable for the box size.
 
     /**
      * @brief Construct a new d2_calc object.
@@ -119,7 +137,7 @@ struct d2_calc {
      * @param p2 Reference to the second point.
      * @param d2 Reference to a double to store the calculated squared distance.
      */
-    d2_calc(const point_t &p1, const point_t &p2, double &d2) : p1(p1), p2(p2), d2(d2) {}
+    d2_calc(const point_t &p1, const point_t &p2, double &d2, double L) : p1(p1), p2(p2), d2(d2), L(L) {}
 
     /**
      * @brief Function call operator that calculates and accumulates the squared distance between the points for the i-th dimension.
@@ -132,7 +150,13 @@ struct d2_calc {
      */
     template<typename U>
     void operator()(U i) {
-        d2 += pow(bg::get<i>(p1) - bg::get<i>(p2), 2); // Calculate square of the difference and accumulate
+
+        double di;
+        di = std::fabs(bg::get<i>(p1) - bg::get<i>(p2));
+        if(di > L/2)
+            d2 += pow(di-L, 2);  // Calculate square of the difference and accumulate
+        else
+            d2 += pow(di, 2);
     }
 };
 
@@ -178,14 +202,14 @@ struct add_scalar_to_point {
         bg::set<i>(p, new_coord); // Set the new coordinate value in the point
     }
 };
-
+/*
 // Main function to perform friends-of-friends clustering using an R-tree
 template <size_t D>
 std::vector<std::vector<size_t>> friends_of_friends_rtree(double *data, size_t npts, double linking_length) {
     
     typedef bg::model::point<double, D, bg::cs::cartesian> point_t;
     typedef std::pair<point_t, size_t> value_t;
-    using tree_t = bgi::rtree<value_t, bgi::linear<4096,16>>;
+    using tree_t = bgi::rtree<value_t, bgi::rstar<16>>;
     typedef bmpl::range_c<size_t, 0, D> dim_range;
 
     init_logging();
@@ -225,6 +249,11 @@ std::vector<std::vector<size_t>> friends_of_friends_rtree(double *data, size_t n
 
     BOOST_LOG_TRIVIAL(info) << "Building groups";
     t1 = high_resolution_clock::now();
+    // Define a search box around the point, extending by the linking length in all dimensions
+    point_t lower, upper;
+    bmpl::for_each<dim_range>(point_setter_const<D>(lower, 0.0));
+    bmpl::for_each<dim_range>(point_setter_const<D>(upper, 1.0));
+    bg::model::box<point_t> box(lower, upper);
     // Loop until all points are grouped
     while (!tree.empty()) {
         std::vector<value_t> to_add;
@@ -237,16 +266,10 @@ std::vector<std::vector<size_t>> friends_of_friends_rtree(double *data, size_t n
             std::vector<value_t> added;
             auto it = to_add.begin() + to_add_i;
 
-            // Define a search box around the point, extending by the linking length in all dimensions
-            point_t lower = it->first, upper = it->first;
-            bmpl::for_each<dim_range>(add_scalar_to_point<D>(lower, -linking_length));
-            bmpl::for_each<dim_range>(add_scalar_to_point<D>(upper, linking_length));
-            bg::model::box<point_t> box(lower, upper);
-
             // Define a predicate to determine if points are within the linking length
             auto within_ball = [&it, linking_length](value_t const &v) {
                 double d2 = 0.;
-                bmpl::for_each<dim_range>(d2_calc<D>(it->first, v.first, d2));
+                bmpl::for_each<dim_range>(d2_calc<D>(it->first, v.first, d2, 1.0));
                 return sqrt(d2) < linking_length;
             };
 
@@ -263,6 +286,227 @@ std::vector<std::vector<size_t>> friends_of_friends_rtree(double *data, size_t n
 
             if (tree.empty()) {
                 break; // Exit if all points have been grouped
+            }
+        }
+
+        // Compile the list of indices for the points in the current group
+        std::vector<size_t> group;
+        for (auto p : to_add) {
+            group.push_back(p.second);
+        }
+        groups.push_back(group); // Add the current group to the list of all groups
+    }
+
+    t2 = high_resolution_clock::now();
+    BOOST_LOG_TRIVIAL(info) << "Groups built in " << duration_cast<seconds>(t2 - t1).count() << " s";
+    BOOST_LOG_TRIVIAL(info) << "Completed friends-of-friends grouping";
+    // Finalize logging before exiting the program
+    finalize_logging();
+
+    return groups; // Return all the groups found
+}
+
+
+// Main function to perform friends-of-friends clustering using an R-tree
+template <size_t D>
+std::vector<std::vector<size_t>> friends_of_friends_rtree(double *data, size_t npts, double linking_length) {
+    
+    typedef bg::model::point<double, D, bg::cs::cartesian> point_t;
+    typedef std::pair<point_t, size_t> value_t;
+    using tree_t = bgi::rtree<value_t, bgi::rstar<16,1>>;
+    typedef bmpl::range_c<size_t, 0, D> dim_range;
+
+    init_logging();
+    using namespace std::chrono;
+    high_resolution_clock::time_point t1, t2;
+    // Now BOOST_LOG_TRIVIAL will work as expected.
+    BOOST_LOG_TRIVIAL(info) << "Starting to reserve space for points";
+    t1 = high_resolution_clock::now();
+
+    // Reserve space for points to avoid multiple reallocations
+    std::vector<std::pair<point_t, size_t>> points;
+    points.reserve(npts);
+    t2 = high_resolution_clock::now();
+    BOOST_LOG_TRIVIAL(info) << "Reserved space in " << duration_cast<milliseconds>(t2 - t1).count() << " ms";
+
+    BOOST_LOG_TRIVIAL(info) << "Starting to populate R-tree with points";
+    t1 = high_resolution_clock::now();
+    // Populate the R-tree with the points from the data array
+    for (size_t i = 0; i < npts; ++i) {
+        point_t point;
+        // Initialize point coordinates from the data array
+        boost::mpl::for_each<dim_range>(point_setter<D>(point, data + i * D));
+        points.push_back(std::make_pair(point, i)); // Pair point with its index
+    }
+    t2 = high_resolution_clock::now();
+    BOOST_LOG_TRIVIAL(info) << "Populated R-tree in " << duration_cast<milliseconds>(t2 - t1).count() << " ms";
+
+    BOOST_LOG_TRIVIAL(info) << "Creating an R-tree";
+    t1 = high_resolution_clock::now();
+    // Create an R-tree using the points vector
+    tree_t tree(points.begin(), points.end());
+    t2 = high_resolution_clock::now();
+    BOOST_LOG_TRIVIAL(info) << "Created R-tree in " << duration_cast<seconds>(t2 - t1).count() << " s";
+
+    // This will store the groups of points that are within the linking length
+    std::vector<std::vector<size_t>> groups;
+
+    // Auxiliary structure to keep track of processed points
+    std::unordered_set<size_t> processed_points;
+
+    BOOST_LOG_TRIVIAL(info) << "Building groups";
+    t1 = high_resolution_clock::now();
+    // Loop until all points are grouped
+    while (processed_points.size() < npts) {
+        std::vector<value_t> to_add;
+        // Start with an arbitrary point from the R-tree that has not been processed
+        for (const auto& p : points) {
+            if (processed_points.find(p.second) == processed_points.end()) {
+                to_add.push_back(p);
+                break;
+            }
+        }
+
+        // Define a search box around the point, extending by the linking length in all dimensions
+        point_t lower, upper;
+        bmpl::for_each<dim_range>(point_setter_const<D>(lower, 0.0));
+        bmpl::for_each<dim_range>(point_setter_const<D>(upper, 1.0));
+        bg::model::box<point_t> box(lower, upper);
+
+        // Process all points that need to be grouped
+        for (auto to_add_i = size_t(0); to_add_i < to_add.size(); ++to_add_i) {
+            std::vector<value_t> added;
+            auto it = to_add.begin() + to_add_i;
+
+            // Define a predicate to determine if points are within the linking length
+            auto within_ball = [&it, linking_length](value_t const &v) {
+                double d2 = 0.;
+                bmpl::for_each<dim_range>(d2_calc<D>(it->first, v.first, d2, 1.0));
+                return sqrt(d2) < linking_length;
+            };
+
+            // Query the R-tree for points within the box and within the linking length
+            tree.query(bgi::within(box) && bgi::satisfies(within_ball), std::back_inserter(added));
+
+            // Add newly found points to the group
+            for (auto p : added) {
+                if (processed_points.find(p.second) == processed_points.end()) {
+                    to_add.push_back(p);
+                    processed_points.insert(p.second); // Mark the point as processed
+                }
+            }
+
+            if (processed_points.size() == npts) {
+                break; // Exit if all points have been grouped
+            }
+        }
+
+        // Compile the list of indices for the points in the current group
+        std::vector<size_t> group;
+        for (auto p : to_add) {
+            group.push_back(p.second);
+        }
+        groups.push_back(group); // Add the current group to the list of all groups
+    }
+
+    t2 = high_resolution_clock::now();
+    BOOST_LOG_TRIVIAL(info) << "Groups built in " << duration_cast<seconds>(t2 - t1).count() << " s";
+    BOOST_LOG_TRIVIAL(info) << "Completed friends-of-friends grouping";
+    // Finalize logging before exiting the program
+    finalize_logging();
+
+    return groups; // Return all the groups found
+}
+*/
+// Main function to perform friends-of-friends clustering using an R-tree
+template <size_t D>
+std::vector<std::vector<size_t>> friends_of_friends_rtree(double *data, size_t npts, double linking_length) {
+    
+    typedef bg::model::point<double, D, bg::cs::cartesian> point_t;
+    typedef std::pair<point_t, size_t> value_t;
+    using tree_t = bgi::rtree<value_t, bgi::rstar<16,1>>;
+    typedef bmpl::range_c<size_t, 0, D> dim_range;
+
+    init_logging();
+    using namespace std::chrono;
+    high_resolution_clock::time_point t1, t2;
+    // Now BOOST_LOG_TRIVIAL will work as expected.
+    BOOST_LOG_TRIVIAL(info) << "Starting to reserve space for points";
+    t1 = high_resolution_clock::now();
+
+    // Reserve space for points to avoid multiple reallocations
+    std::vector<std::pair<point_t, size_t>> points;
+    points.reserve(npts);
+    t2 = high_resolution_clock::now();
+    BOOST_LOG_TRIVIAL(info) << "Reserved space in " << duration_cast<milliseconds>(t2 - t1).count() << " ms";
+
+    BOOST_LOG_TRIVIAL(info) << "Starting to populate R-tree with points";
+    t1 = high_resolution_clock::now();
+    // Populate the R-tree with the points from the data array
+    for (size_t i = 0; i < npts; ++i) {
+        point_t point;
+        // Initialize point coordinates from the data array
+        boost::mpl::for_each<dim_range>(point_setter<D>(point, data + i * D));
+        points.push_back(std::make_pair(point, i)); // Pair point with its index
+    }
+    t2 = high_resolution_clock::now();
+    BOOST_LOG_TRIVIAL(info) << "Populated R-tree in " << duration_cast<milliseconds>(t2 - t1).count() << " ms";
+
+    BOOST_LOG_TRIVIAL(info) << "Creating an R-tree";
+    t1 = high_resolution_clock::now();
+    // Create an R-tree using the points vector
+    tree_t tree(points.begin(), points.end());
+    t2 = high_resolution_clock::now();
+    BOOST_LOG_TRIVIAL(info) << "Created R-tree in " << duration_cast<seconds>(t2 - t1).count() << " s";
+
+    // This will store the groups of points that are within the linking length
+    std::vector<std::vector<size_t>> groups;
+
+    // Auxiliary structure to keep track of processed points
+    std::vector<bool> processed_points(npts, false);
+
+    BOOST_LOG_TRIVIAL(info) << "Building groups";
+    t1 = high_resolution_clock::now();
+    // Loop until all points are grouped
+    while (!std::all_of(processed_points.begin(), processed_points.end(), [](bool v) { return v; })) {
+        std::vector<value_t> to_add;
+        // Start with an arbitrary point from the R-tree that has not been processed
+        for (const auto& p : points) {
+            if (!processed_points[p.second]) {
+                to_add.push_back(p);
+                break;
+            }
+        }
+
+        // Define a search box around the point, extending by the linking length in all dimensions
+        point_t lower, upper;
+        bmpl::for_each<dim_range>(point_setter_const<D>(lower, 0.0));
+        bmpl::for_each<dim_range>(point_setter_const<D>(upper, 1.0));
+        bg::model::box<point_t> box(lower, upper);
+
+        // Process all points that need to be grouped
+        for (auto to_add_i = size_t(0); to_add_i < to_add.size(); ++to_add_i) {
+            std::vector<value_t> added;
+            auto it = to_add.begin() + to_add_i;
+
+            // Define a predicate to determine if points are within the linking length
+            auto within_ball = [&it, linking_length](value_t const &v) {
+                double d2 = 0.;
+                bmpl::for_each<dim_range>(d2_calc<D>(it->first, v.first, d2, 1.0));
+                return sqrt(d2) < linking_length;
+            };
+
+            // Query the R-tree for points within the box and within the linking length
+            tree.query(bgi::within(box) && bgi::satisfies([&](value_t const &v) {
+                return !processed_points[v.second] && within_ball(v);
+            }), std::back_inserter(added));
+
+            // Add newly found points to the group
+            for (auto p : added) {
+                if (!processed_points[p.second]) {
+                    to_add.push_back(p);
+                    processed_points[p.second] = true; // Mark the point as processed
+                }
             }
         }
 
